@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+"""Provide command line interface to easygv."""
+
+# Imports
+from logzero import logging as log
+
+import os
+from pathlib import Path
+import datetime as dt
+import shutil
+import pprint as pp
+import appdirs
+
+
+from munch import Munch, munchify, unmunchify
+import ruamel.yaml as yaml
+
+import click
+from click import echo
+
+from easygv.cli.config import process_config, update_configs
+from easygv.cli import config as _config
+from easygv import easygv
+
+
+# Metadata
+__author__ = "Gus Dunn"
+__email__ = "w.gus.dunn@gmail.com"
+
+FACTORY_RESETS = (Path(os.path.realpath(__file__)).parent / 'factory_resets/').resolve()
+USER_CONFIG_DIR = Path(appdirs.user_config_dir())
+USER_APP_DIR = USER_CONFIG_DIR / 'easygv'
+
+
+@click.group(invoke_without_command=True)
+@click.option('-c', '--config', default=None,
+              help="Path to optional config directory. If `None`, {user_config_dir} is searched for *.yaml files.".format(user_config_dir=str(USER_APP_DIR)), type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.pass_context
+def main(ctx=None, config=None, home=None):
+    """Command interface to easygv.
+
+    Define nodes and edges in an excel file and graph-style attributes in a yaml file with inheritence.
+
+    For command specific help text, call the specific
+    command followed by the --help option.
+    """
+    ctx.obj = Munch()
+
+
+@main.command()
+@click.option('-g', '--generate-config',
+              is_flag=True,
+              help="Copy one or more of the 'factory default' config files to the users "
+              "config directory ({user_config_dir}). Back ups will be made of any existing config files.".format(user_config_dir=USER_APP_DIR),
+              show_default=True,
+              default=False)
+@click.option('-k', '--kind',
+              type=click.Choice(['attrs']),
+              help="Which type of config should we replace?",
+              show_default=True,
+              default='attrs')
+@click.option('-p', '--prefix',
+              type=click.STRING,
+              help="""A prefix to identify the new config file(s).""",
+              show_default=True,
+              default=None)
+@click.pass_context
+def config(ctx, generate_config, kind, prefix):
+    """Manage configuration values and files."""
+    factory_resets = FACTORY_RESETS
+    default_files = {"attrs": factory_resets / 'attrs.yaml'}
+
+    if generate_config:
+        if kind == 'all':
+            for p in default_files['all']:
+                _config.replace_config(name=p.name,
+                                       factory_resets=factory_resets,
+                                       user_conf_dir=USER_APP_DIR,
+                                       prefix=prefix)
+        else:
+            p = default_files[kind]
+            _config.replace_config(name=p.name,
+                                   factory_resets=factory_resets,
+                                   user_conf_dir=USER_APP_DIR,
+                                   prefix=prefix)
+
+
+draw_formats = ['all', 'pdf', 'png', 'svg']
+draw_layouts = ["dot", "neato", "fdp", "sfdp", "twopi", "circo"]
+
+
+@main.command()
+@click.option('-f', '--formats',
+              type=click.Choice(draw_formats),
+              help="Which type of format should we produce?",
+              show_default=True,
+              default='all')
+@click.option('-d', '--directory',
+              type=click.Path(exists=True, file_okay=False),
+              help="""Path to a directory to write out the files.""",
+              show_default=True,
+              default=None)
+@click.option('-n', '--name',
+              type=click.STRING,
+              help="""A name for your figure.""",
+              show_default=True,
+              default=None)
+@click.option('-l', '--layout',
+              type=click.Choice(draw_layouts),
+              help="""Which layout program?""",
+              show_default=True,
+              default='dot')
+@click.argument('definition', type=click.Path(exists=True, dir_okay=False))
+@click.argument('attr_config', type=click.Path(exists=True, dir_okay=False))
+@click.pass_context
+def draw(ctx, formats, directory, name, layout, definition, attr_config):
+    """Produce your graph and save results based on your input."""
+    directory = Path(directory)
+    definition = Path(definition)
+    attr_config = Path(attr_config)
+
+    if name is None:
+        name = 'easygv'
+
+    if formats == 'all':
+        formats = draw_formats[-1:]
+    else:
+        formats = [formats]
+
+    graph_input = easygv.load_graph_input(path=definition)
+
+    attrs = easygv.process_attrs(attr_config)
+    g = easygv.build_graph(graph_input=graph_input, attrs=attrs)
+
+    gvg = gv.Source(g.string())
+    for f in formats[-1:]:
+        gvg.format = f
+        gvg.render(directory / '{name}.gv'.format(name=name))
+
+
+# Business
+if __name__ == '__main__':
+    main(obj=Munch())

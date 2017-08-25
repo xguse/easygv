@@ -1,0 +1,42 @@
+# Default Configuration File for easygv.
+
+GRAPH:
+    rankdir: ''
+    fontcolor: black
+    fontsize: 12
+    fontname: Cantarell
+    margin: 0
+
+
+####### Node descriptions
+NODES:
+    BASE:
+        penwidth: 2
+        fontcolor: black
+        fontsize: 11
+        fontname: Cantarell
+        shape: box
+        style: rounded
+    analysis:
+        fillcolor: '#B83545'
+        fontcolor: '#F5F5F5'
+        shape: box
+        style: filled,rounded
+    location:
+        fillcolor: '#86B835'
+        shape: box3d
+        style: filled
+    message:
+        fillcolor: '#B89235'
+        fontcolor: '#3C3F41'
+        shape: egg
+        style: filled
+    mover:
+        fillcolor: '#3591B8'
+        fontcolor: '#F5F5F5'
+        shape: egg
+        style: filled
+
+# ####### Edge descriptions
+# EDGES:
+#     base_edge:
