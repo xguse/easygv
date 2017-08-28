@@ -2,7 +2,8 @@
 """Provide command line interface to easygv."""
 
 # Imports
-from logzero import logging as log
+import logzero
+from logzero import logger as log
 
 import os
 from pathlib import Path
@@ -18,6 +19,8 @@ import ruamel.yaml as yaml
 import click
 from click import echo
 
+import graphviz as gv
+
 from easygv.cli.config import process_config, update_configs
 from easygv.cli import config as _config
 from easygv import easygv
@@ -32,11 +35,25 @@ USER_CONFIG_DIR = Path(appdirs.user_config_dir())
 USER_APP_DIR = USER_CONFIG_DIR / 'easygv'
 
 
-@click.group(invoke_without_command=True)
-@click.option('-c', '--config', default=None,
-              help="Path to optional config directory. If `None`, {user_config_dir} is searched for *.yaml files.".format(user_config_dir=str(USER_APP_DIR)), type=click.Path(exists=True, file_okay=False, dir_okay=True))
+verbosity_levels = {'debug': 10,
+                    'normal': 20,
+                    'quiet': 30}
+
+# logzero.loglevel(0)
+# log.debug('debug')
+# log.info('info')
+# log.warning('warning')
+# log.error('error')
+
+
+@click.group()
+@click.option('-v', '--verbosity',
+              type=click.Choice(verbosity_levels.keys()),
+              help="How much do you want to know about what I am doing?",
+              show_default=True,
+              default='normal')
 @click.pass_context
-def main(ctx=None, config=None, home=None):
+def main(ctx=None, verbosity=None):
     """Command interface to easygv.
 
     Define nodes and edges in an excel file and graph-style attributes in a yaml file with inheritence.
@@ -45,6 +62,12 @@ def main(ctx=None, config=None, home=None):
     command followed by the --help option.
     """
     ctx.obj = Munch()
+
+    # NOTE: Not sure I need to store this or just set it here.
+    ctx.obj.LOGLVL = verbosity_levels[verbosity]
+
+    logzero.loglevel(level=ctx.obj.LOGLVL, update_custom_handlers=True)
+    log.debug("loglevel set at: {lvl}".format(lvl=ctx.obj.LOGLVL))
 
 
 @main.command()
@@ -89,7 +112,7 @@ draw_formats = ['all', 'pdf', 'png', 'svg']
 draw_layouts = ["dot", "neato", "fdp", "sfdp", "twopi", "circo"]
 
 
-@main.command()
+@main.command('draw', short_help='Draw and save your graph.')
 @click.option('-f', '--formats',
               type=click.Choice(draw_formats),
               help="Which type of format should we produce?",
@@ -114,7 +137,14 @@ draw_layouts = ["dot", "neato", "fdp", "sfdp", "twopi", "circo"]
 @click.argument('attr_config', type=click.Path(exists=True, dir_okay=False))
 @click.pass_context
 def draw(ctx, formats, directory, name, layout, definition, attr_config):
-    """Produce your graph and save results based on your input."""
+    """Produce your graph and save results based on your input.
+
+    \b
+    DEFINITION  = Excel file containing the definition of your nodes and edges
+    ATTR_CONFIG = YAML file containing the attribute information for your
+                  graph, node-, and edge-types
+    """
+    log.info("Preparing your graph.")
     directory = Path(directory)
     definition = Path(definition)
     attr_config = Path(attr_config)
@@ -123,7 +153,7 @@ def draw(ctx, formats, directory, name, layout, definition, attr_config):
         name = 'easygv'
 
     if formats == 'all':
-        formats = draw_formats[-1:]
+        formats = draw_formats[1:]
     else:
         formats = [formats]
 
@@ -132,10 +162,11 @@ def draw(ctx, formats, directory, name, layout, definition, attr_config):
     attrs = easygv.process_attrs(attr_config)
     g = easygv.build_graph(graph_input=graph_input, attrs=attrs)
 
-    gvg = gv.Source(g.string())
-    for f in formats[-1:]:
+    gvg = gv.Source(g.string(), engine=layout)
+    for f in formats:
         gvg.format = f
-        gvg.render(directory / '{name}.gv'.format(name=name))
+        fig_path = gvg.render(directory / '{name}.gv'.format(name=name))
+        log.info("Created: {p}".format(p=fig_path))
 
 
 # Business
