@@ -13,3 +13,4 @@ pytest-runner>=2.11.1
 pylama
 jupyter
 ipython
+sphinx_rtd_theme
