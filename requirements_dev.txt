@@ -11,5 +11,5 @@ PyYAML>=3.11
 pytest>=2.9.2
 pytest-runner>=2.11.1
 pylama==7.4.1
-jupyter
+jupyter==1.0.0
 ipython
