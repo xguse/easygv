@@ -61,7 +61,7 @@ test_requirements = [
 # Do the setup
 setup(
     name='easygv',
-    version='0.0.1',
+    version='0.0.2',
     description="Define nodes and edges in an excel file and graph-style attributes in a yaml file with inheritence.",
     long_description=readme + '\n\n' + history,
     author="Gus Dunn",
