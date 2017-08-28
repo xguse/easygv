@@ -1,5 +1,5 @@
 Welcome to Easy graphviz's documentation!
-======================================
+=========================================
 
 Contents:
 
