@@ -1,6 +1,6 @@
 click==6.7
 ruamel.yaml==0.15.32
-pandas
+pandas==0.20.3
 xlrd
 xlwt
 pygraphviz
