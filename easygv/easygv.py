@@ -130,7 +130,7 @@ def add_nodes(g, nodes):
 
 def add_edges(g, edges):
     """Add edges to the graph in place."""
-    edges.apply(lambda e: g.add_edge(u=e['u_name'], v=e['v_name']),
+    edges.apply(lambda e: g.add_edge(u=e['u_name'], v=e['v_name'], label=e['label'], edge_class=e["edge_class"]),
                 axis=1)
 
 
