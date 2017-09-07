@@ -20,7 +20,8 @@ def update_pgv_element(element_attr_obj, attrs):
         attrs (dict-like): A set of key/value pairs defining attribute information.
 
     Returns:
-        None: Updates graph element in place.
+        `None`: Updates graph element in place.
+
     """
     try:
         element_attr_obj.update(attrs)
@@ -34,14 +35,14 @@ def update_pgv_element(element_attr_obj, attrs):
 
 
 def style_the_graph(g, attrs):
-    """Apply attribute discriptions in `attrs` to graph `g`.
+    """Apply attribute discriptions in ``attrs`` to graph ``g``.
 
     Args:
         g (AGraph): A pygraphviz object.
         attrs (dict-like): Attribute discriptions.
 
     Returns:
-        None: Modifies `g` in place.
+        `None`: Modifies ``g`` in place.
     """
     update_pgv_element(element_attr_obj=g.graph_attr,
                        attrs=attrs.graph)
@@ -78,6 +79,7 @@ def style_the_graph(g, attrs):
 
 
 def load_graph_input(path):
+    """Return loaded/recoded graph_input dataframes for Nodes and Edges."""
     data = Munch({name: table for name, table in pd.read_excel(io=str(path), sheetname=None).items()})
 
     # Do some Recoding
@@ -119,6 +121,7 @@ def add_clusters(g, nodes, clusters):
 
 
 def add_nodes(g, nodes):
+    """Add nodes to the graph in place."""
     nodes.apply(lambda n: g.add_node(n['name'],
                                      label=n["label"],
                                      node_class=n["node_class"]),
@@ -126,14 +129,21 @@ def add_nodes(g, nodes):
 
 
 def add_edges(g, edges):
+    """Add edges to the graph in place."""
     edges.apply(lambda e: g.add_edge(u=e['u_name'], v=e['v_name']),
                 axis=1)
 
 
 def build_graph(graph_input, attrs):
-    nodes_table = graph_input['Nodes']
-    edges_table = graph_input['Edges']
+    """Init the pygraphviz object and apply the sub-functions to assemble and style the graph.
 
+    Args:
+        graph_input (dict-like): the output from ``load_graph_input``.
+        attrs (dict-like): the output from ``process_attrs``.
+
+    Returns:
+        pygraphviz.AGraph: The assembled and styled graph.
+    """
     g = pgv.AGraph(thing=None, filename=None,
                    data=None, string=None,
                    handle=None, name=None,
