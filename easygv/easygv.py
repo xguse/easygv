@@ -70,10 +70,21 @@ def style_the_graph(g, attrs):
 
 
 def load_graph_input(path):
-    data = pd.read_excel(io=str(path), sheetname=None)
+    data = Munch({name: table for name, table in pd.read_excel(io=str(path), sheetname=None).items()})
+
+    # Do some Recoding
+    for name, table in data.items():
+        data[name] = table.applymap(nan_to_str)
+
     return data
 
 
+def nan_to_str(x):
+    """Return empty string if pd.isnull(x): x otherwise."""
+    if pd.isnull(x):
+        return ''
+    else:
+        return x
 def add_nodes(g, nodes):
     nodes.apply(lambda n: g.add_node(n['name'],
                                      label=n["label"],
