@@ -7,21 +7,15 @@ from logzero import logger as log
 
 import os
 from pathlib import Path
-import datetime as dt
-import shutil
-import pprint as pp
 import appdirs
 
 
-from munch import Munch, munchify, unmunchify
-import ruamel.yaml as yaml
+from munch import Munch
 
 import click
-from click import echo
 
 import graphviz as gv
 
-from easygv.cli.config import process_config, update_configs
 from easygv.cli import config as _config
 from easygv import easygv
 
