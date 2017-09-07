@@ -10,8 +10,8 @@ from munch import Munch, munchify
 import ruamel.yaml as yaml
 
 
-def update_configs(directory, to_update=None):
-    """Collect, combine, and return all \*.yaml files in `directory`."""
+def update_configs(directory, to_update=None):  # noqa: D301
+    """Collect, combine, and return all \*.yaml files in ``directory``."""
     confs = Path(directory).glob('*.yaml')
 
     confs = {p.stem.upper(): p for p in confs}

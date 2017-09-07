@@ -130,7 +130,7 @@ draw_layouts = ["dot", "neato", "fdp", "sfdp", "twopi", "circo"]
 @click.argument('definition', type=click.Path(exists=True, dir_okay=False))
 @click.argument('attr_config', type=click.Path(exists=True, dir_okay=False))
 @click.pass_context
-def draw(ctx, formats, directory, name, layout, definition, attr_config):
+def draw(ctx, formats, directory, name, layout, definition, attr_config):  # noqa: D301
     """Produce your graph and save results based on your input.
 
     \b
