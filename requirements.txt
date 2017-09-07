@@ -4,5 +4,5 @@ pandas
 xlrd
 xlwt
 pygraphviz
-graphviz
+graphviz==0.8
 appdirs
