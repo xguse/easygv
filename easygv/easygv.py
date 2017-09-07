@@ -68,6 +68,14 @@ def style_the_graph(g, attrs):
         except KeyError:
             pass
 
+    for cluster in g.subgraphs():
+        kind = cluster.graph_attr['cluster_class']
+        try:
+            update_pgv_element(element_attr_obj=cluster.graph_attr,
+                               attrs=attrs.clusters[kind])
+        except KeyError:
+            pass
+
 
 def load_graph_input(path):
     data = Munch({name: table for name, table in pd.read_excel(io=str(path), sheetname=None).items()})
@@ -75,6 +83,12 @@ def load_graph_input(path):
     # Do some Recoding
     for name, table in data.items():
         data[name] = table.applymap(nan_to_str)
+
+    try:
+        data.Nodes["cluster_name"] = data.Nodes["cluster_name"].apply(lambda name: "cluster_{name}".format(name=name))
+        data.Clusters["name"] = data.Clusters["name"].apply(lambda name: "cluster_{name}".format(name=name))
+    except KeyError:
+        pass
 
     return data
 
@@ -85,6 +99,25 @@ def nan_to_str(x):
         return ''
     else:
         return x
+
+
+def add_clusters(g, nodes, clusters):
+    """Add clusters to the graph in place."""
+    clusters_ = clusters.merge(right=nodes[["name", "cluster_name"]],
+                               how='inner',
+                               left_on='name', right_on='cluster_name',
+                               suffixes=('_cluster', '_node'))[["label", "cluster_class", "name_node", "cluster_name"]]
+
+    clustered_nodes = clusters_.groupby(["label", "cluster_class", "cluster_name"]).name_node.apply(lambda x: list(x.unique())).to_dict()
+
+    for key, nodes in clustered_nodes.items():
+        label = key[0]
+        cluster_class = key[1]
+        name = key[2]
+
+        g.add_subgraph(nbunch=nodes, label=label, cluster_class=cluster_class, name=name)
+
+
 def add_nodes(g, nodes):
     nodes.apply(lambda n: g.add_node(n['name'],
                                      label=n["label"],
@@ -106,8 +139,11 @@ def build_graph(graph_input, attrs):
                    handle=None, name=None,
                    strict=True, directed=True)
 
-    add_nodes(g=g, nodes=nodes_table)
-    add_edges(g=g, edges=edges_table)
+    add_nodes(g=g, nodes=graph_input.Nodes)
+    add_edges(g=g, edges=graph_input.Edges)
+
+    if 'cluster_name' in graph_input.Nodes.columns.values:
+        add_clusters(g=g, nodes=graph_input.Nodes, clusters=graph_input.Clusters)
 
     style_the_graph(g=g, attrs=attrs)
 
@@ -169,22 +205,18 @@ def process_attrs(attr_config):
 
     attrs.graph = graph_base
 
-    # Node types
-    try:
-        nodes_base = conf.NODES.BASE
-    except AttributeError:
-        nodes_base = Munch()
+    not_graph = set(conf.keys()) - set(['GRAPH'])
 
-    attrs.nodes = attr_setup(entities=conf.NODES.ACTUAL)
-    attrs.nodes.BASE = nodes_base
+    for name in not_graph:
+        tree = conf[name]
 
-    # Edge types
-    try:
-        edges_base = conf.EDGES.BASE
-    except AttributeError:
-        edges_base = Munch()
+        try:
+            base = tree.BASE
+        except AttributeError:
+            base = Munch()
 
-    attrs.edges = attr_setup(entities=conf.EDGES.ACTUAL)
-    attrs.edges.BASE = edges_base
+        attr_type = name.lower()
+        attrs[attr_type] = attr_setup(entities=tree.ACTUAL)
+        attrs[attr_type].BASE = base
 
     return attrs
