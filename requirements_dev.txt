@@ -12,5 +12,5 @@ pytest>=2.9.2
 pytest-runner>=2.11.1
 pylama==7.4.3
 jupyter
-ipython
+ipython==6.1.0
 sphinx_rtd_theme==0.2.4
