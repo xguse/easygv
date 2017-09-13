@@ -1,7 +1,7 @@
 click
 ruamel.yaml
 pandas
-xlrd
+xlrd==1.1.0
 xlwt
 pygraphviz
 graphviz
