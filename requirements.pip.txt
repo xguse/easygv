@@ -1,2 +1,2 @@
-recommonmark
-logzero
+recommonmark==0.4.0
+logzero==1.3.1
