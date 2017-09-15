@@ -1,5 +1,5 @@
 click==6.7
-ruamel.yaml
+ruamel.yaml==0.15.33
 pandas
 xlrd
 xlwt
