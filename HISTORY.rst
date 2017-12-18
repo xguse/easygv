@@ -1,4 +1,12 @@
 
+v0.1.1 / 2017-12-18
+===================
+
+  * config pyup to send PRs every month not day
+  * pinned all reqs since pyup managed now
+  * dependency updates
+  * Pin pylama to latest version 7.4.3
+
 v0.1.0 / 2017-09-07
 ===================
 
