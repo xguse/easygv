@@ -1,4 +1,4 @@
-click==6.7
+click==7.0
 ruamel.yaml==0.15.33
 pandas==0.20.3
 xlrd==1.1.0
