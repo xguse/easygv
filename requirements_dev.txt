@@ -9,7 +9,7 @@ Sphinx==2.0.0
 cryptography==2.6.1
 PyYAML==5.1
 pytest==4.4.0
-pytest-runner==2.11.1
+pytest-runner==4.4
 pylama==7.4.3
 jupyter==1.0.0
 ipython==6.1.0
