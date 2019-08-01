@@ -13,4 +13,4 @@ pytest-runner==5.1
 pylama==7.7.1
 jupyter==1.0.0
 ipython==7.7.0
-sphinx_rtd_theme==0.2.4
+sphinx_rtd_theme==0.4.3
